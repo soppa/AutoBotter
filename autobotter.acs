@@ -1,0 +1,56 @@
+/**
+    AutoBotter for Zandronum
+    Automatically adds/removes bots to keep player count at a desired level
+    https://github.com/soppa/AutoBotter
+    Version 1
+    2025-03-03
+*/
+
+#library "autobotter"
+
+// Keep track of bot count manually since PlayerIsBot() seems to sometimes return false for a bot
+global int 1:botCount;
+
+// Check player/bot count and add/remove bots accordingly
+function void checkAndUpdateBots (void) {
+    int botFill = 4;
+    int playerLimit = 2;
+
+    if (GetCVar("autobotter_botfill")) {
+        botFill = GetCVar("autobotter_botfill");
+    }
+    if (GetCVar("autobotter_playerlimit")) {
+        playerLimit = GetCVar("autobotter_playerlimit");
+    }
+
+    int humanCount = PlayerCount() - botCount;
+
+    if (humanCount < playerLimit) {
+        // Human player limit not reached, update bots so player count matches botFill
+        int botsToAdd = botFill - PlayerCount();
+        int botsToRemove = PlayerCount() - botFill;
+        if (botsToAdd > 0) {
+            for (int i = 0; i < botsToAdd; i++) {
+                ConsoleCommand("AddBot");
+                botCount++;
+            }
+        } else if (botsToRemove > 0) {
+            for (int j = 0; j < botsToRemove; j++) {
+                ConsoleCommand("RemoveBot");
+                botCount--;
+            }
+        }
+    } else if (botCount > 0) {
+        // Human player limit reached, remove all bots
+        ConsoleCommand("RemoveBots");
+        botCount = 0;
+    }
+}
+
+script 1 ENTER NET {
+    checkAndUpdateBots();
+}
+
+script 2 (int player) DISCONNECT {
+    checkAndUpdateBots();
+}

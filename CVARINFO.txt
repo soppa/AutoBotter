@@ -1,0 +1,2 @@
+server int autobotter_botfill = 4;
+server int autobotter_playerlimit = 2;
